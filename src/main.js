@@ -11,7 +11,7 @@ indexeddbProvider.whenSynced.then(() => {
 });
 
 const websocketProvider = new WebsocketProvider(
-  'ws://localhost:1234',
+  'ws://ywss.figureandsound.com:1234',
   'count-demo',
   ydoc
 );

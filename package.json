@@ -6,8 +6,7 @@
   "private": true,
   "scripts": {
     "build": "webpack",
-    "start:server": "PORT=1234 node ./node_modules/y-websocket/bin/server.js",
-    "start:client": "webpack-dev-server"
+    "start": "webpack-dev-server"
   },
   "dependencies": {
     "html-webpack-plugin": "^5.5.0",

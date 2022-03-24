@@ -6,7 +6,6 @@ This project is my onboarding project for [Commit](https://commit.dev/).
 
 ```
 yarn
-yarn start:server
-yarn start:client
+yarn start
 open http://localhost:8080/
 ```
