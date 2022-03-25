@@ -4,10 +4,19 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title><%= htmlWebpackPlugin.options.title %></title>
+  <style>
+    body {
+      background: linear-gradient(90deg, #ff68ba 0.39%, #edc281 99.97%);
+      margin: 0;
+    }
+    #app {
+      display: flex;
+      justify-content: center;
+    }
+  </style>
 </head>
 <body>
 <noscript>This website is a JavaScript application, so JavaScript needs to be enabled in order to use it.</noscript>
-<h1>Commit <abbr title="Hackathon Onboarding Project">HOP</abbr></h1>
-<p>There's stuff going on in the console!</p>
+<div id="app"></div>
 </body>
 </html>
