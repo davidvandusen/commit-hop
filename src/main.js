@@ -1,9 +1,7 @@
 import {
-  Body,
   Bodies,
   Composite,
   Constraint,
-  Common,
   Engine,
   Mouse,
   MouseConstraint,
@@ -11,187 +9,63 @@ import {
   Runner,
 } from 'matter-js';
 
-// Adapted from https://github.com/liabru/matter-js/blob/master/examples/ragdoll.js
-const makeRagDoll = (x, y) => {
-  const defaultColor = '#010242';
-  const headOptions = {
-    collisionFilter: { group: Body.nextGroup(true) },
-    render: { fillStyle: defaultColor },
+const makeTreeComposite = tree => {
+  const options = {
+    collisionFilter: { group: -1 },
+    render: { fillStyle: '#010242' },
   };
-  const chestOptions = {
-    collisionFilter: { group: Body.nextGroup(true) },
-    render: { fillStyle: defaultColor },
+  const stiffness = 0.4;
+  const walkTree = (node, bodies = [], constraints = []) => {
+    const shape = Bodies.circle(node.x, node.y, node.r, options);
+    bodies.push(shape);
+    constraints.push(
+      Constraint.create({
+        bodyB: shape,
+        pointA: { x: node.x, y: node.y },
+        pointB: { x: 0, y: 0 },
+        stiffness: stiffness,
+        render: {
+          visible: false,
+        },
+      })
+    );
+    const childShapes = [];
+    for (let child of node.children) {
+      const { shape: childShape } = walkTree(child, bodies, constraints);
+      constraints.push(
+        Constraint.create({
+          bodyA: shape,
+          bodyB: childShape,
+          pointA: { x: 0, y: 0 },
+          pointB: { x: 0, y: 0 },
+          stiffness: stiffness,
+          render: {
+            visible: false,
+          },
+        })
+      );
+      childShapes.push(childShape);
+    }
+    for (let childShapeA of childShapes) {
+      for (let childShapeB of childShapes) {
+        constraints.push(
+          Constraint.create({
+            bodyA: childShapeA,
+            bodyB: childShapeB,
+            pointA: { x: 0, y: 0 },
+            pointB: { x: 0, y: 0 },
+            stiffness: stiffness,
+            render: {
+              visible: false,
+            },
+          })
+        );
+      }
+    }
+    return { bodies, constraints, shape };
   };
-  const leftArmOptions = {
-    collisionFilter: { group: Body.nextGroup(true) },
-    render: { fillStyle: defaultColor },
-  };
-  const leftLowerArmOptions = Common.extend({}, leftArmOptions);
-  const rightArmOptions = {
-    collisionFilter: { group: Body.nextGroup(true) },
-    render: { fillStyle: defaultColor },
-  };
-  const rightLowerArmOptions = Common.extend({}, rightArmOptions);
-  const leftLegOptions = {
-    collisionFilter: { group: Body.nextGroup(true) },
-    render: { fillStyle: defaultColor },
-  };
-  const leftLowerLegOptions = Common.extend({}, leftLegOptions);
-  const rightLegOptions = {
-    collisionFilter: { group: Body.nextGroup(true) },
-    render: { fillStyle: defaultColor },
-  };
-  const rightLowerLegOptions = Common.extend({}, rightLegOptions);
-  const head = Bodies.rectangle(x, y - 60, 34, 40, headOptions);
-  const chest = Bodies.rectangle(x, y, 55, 80, chestOptions);
-  const rightUpperArm = Bodies.rectangle(
-    x + 39,
-    y - 15,
-    20,
-    40,
-    rightArmOptions
-  );
-  const rightLowerArm = Bodies.rectangle(
-    x + 39,
-    y + 25,
-    20,
-    60,
-    rightLowerArmOptions
-  );
-  const leftUpperArm = Bodies.rectangle(x - 39, y - 15, 20, 40, leftArmOptions);
-  const leftLowerArm = Bodies.rectangle(
-    x - 39,
-    y + 25,
-    20,
-    60,
-    leftLowerArmOptions
-  );
-  const leftUpperLeg = Bodies.rectangle(x - 20, y + 57, 20, 40, leftLegOptions);
-  const leftLowerLeg = Bodies.rectangle(
-    x - 20,
-    y + 97,
-    20,
-    60,
-    leftLowerLegOptions
-  );
-  const rightUpperLeg = Bodies.rectangle(
-    x + 20,
-    y + 57,
-    20,
-    40,
-    rightLegOptions
-  );
-  const rightLowerLeg = Bodies.rectangle(
-    x + 20,
-    y + 97,
-    20,
-    60,
-    rightLowerLegOptions
-  );
-  const chestToRightUpperArm = Constraint.create({
-    bodyA: chest,
-    bodyB: rightUpperArm,
-    pointA: { x: 24, y: -23 },
-    pointB: { x: 0, y: -8 },
-    stiffness: 0.6,
-    render: { visible: false },
-  });
-  const chestToLeftUpperArm = Constraint.create({
-    bodyA: chest,
-    bodyB: leftUpperArm,
-    pointA: { x: -24, y: -23 },
-    pointB: { x: 0, y: -8 },
-    stiffness: 0.6,
-    render: { visible: false },
-  });
-  const chestToLeftUpperLeg = Constraint.create({
-    bodyA: chest,
-    bodyB: leftUpperLeg,
-    pointA: { x: -10, y: 30 },
-    pointB: { x: 0, y: -10 },
-    stiffness: 0.6,
-    render: { visible: false },
-  });
-  const chestToRightUpperLeg = Constraint.create({
-    bodyA: chest,
-    bodyB: rightUpperLeg,
-    pointA: { x: 10, y: 30 },
-    pointB: { x: 0, y: -10 },
-    stiffness: 0.6,
-    render: { visible: false },
-  });
-  const upperToLowerRightArm = Constraint.create({
-    bodyA: rightUpperArm,
-    bodyB: rightLowerArm,
-    pointA: { x: 0, y: 15 },
-    pointB: { x: 0, y: -25 },
-    stiffness: 0.6,
-    render: { visible: false },
-  });
-  const upperToLowerLeftArm = Constraint.create({
-    bodyA: leftUpperArm,
-    bodyB: leftLowerArm,
-    pointA: { x: 0, y: 15 },
-    pointB: { x: 0, y: -25 },
-    stiffness: 0.6,
-    render: { visible: false },
-  });
-  const upperToLowerLeftLeg = Constraint.create({
-    bodyA: leftUpperLeg,
-    bodyB: leftLowerLeg,
-    pointA: { x: 0, y: 20 },
-    pointB: { x: 0, y: -20 },
-    stiffness: 0.6,
-    render: { visible: false },
-  });
-  const upperToLowerRightLeg = Constraint.create({
-    bodyA: rightUpperLeg,
-    bodyB: rightLowerLeg,
-    pointA: { x: 0, y: 20 },
-    pointB: { x: 0, y: -20 },
-    stiffness: 0.6,
-    render: { visible: false },
-  });
-  const headConstraint = Constraint.create({
-    bodyA: head,
-    bodyB: chest,
-    pointA: { x: 0, y: 25 },
-    pointB: { x: 0, y: -35 },
-    stiffness: 0.6,
-    render: { visible: false },
-  });
-  const legToLeg = Constraint.create({
-    bodyA: leftLowerLeg,
-    bodyB: rightLowerLeg,
-    stiffness: 0.01,
-    render: { visible: false },
-  });
-  return Composite.create({
-    bodies: [
-      chest,
-      head,
-      leftLowerArm,
-      leftUpperArm,
-      rightLowerArm,
-      rightUpperArm,
-      leftLowerLeg,
-      rightLowerLeg,
-      leftUpperLeg,
-      rightUpperLeg,
-    ],
-    constraints: [
-      upperToLowerLeftArm,
-      upperToLowerRightArm,
-      chestToLeftUpperArm,
-      chestToRightUpperArm,
-      headConstraint,
-      upperToLowerLeftLeg,
-      upperToLowerRightLeg,
-      chestToLeftUpperLeg,
-      chestToRightUpperLeg,
-      legToLeg,
-    ],
-  });
+  const { bodies, constraints } = walkTree(tree);
+  return Composite.create({ bodies, constraints });
 };
 
 const main = () => {
@@ -231,7 +105,42 @@ const main = () => {
       render: { visible: false },
     }),
   ]);
-  Composite.add(engine.world, makeRagDoll(400, 300));
+  Composite.add(
+    engine.world,
+    makeTreeComposite({
+      x: 400,
+      y: 300,
+      r: 50,
+      children: [
+        {
+          x: 400,
+          y: 100,
+          r: 50,
+          children: [
+            {
+              x: 400,
+              y: 200,
+              r: 75,
+              children: [],
+            },
+            {
+              x: 300,
+              y: 200,
+              r: 50,
+              children: [
+                { x: 300, y: 150, r: 25, children: [] },
+                { x: 250, y: 150, r: 25, children: [] },
+                { x: 250, y: 200, r: 25, children: [] },
+                { x: 250, y: 250, r: 25, children: [] },
+                { x: 300, y: 250, r: 25, children: [] },
+              ],
+            },
+            { x: 500, y: 200, r: 50, children: [] },
+          ],
+        },
+      ],
+    })
+  );
   Render.run(render);
   const runner = Runner.create();
   Runner.run(runner, engine);
