@@ -11,26 +11,34 @@ import {
 import { WebsocketProvider } from 'y-websocket';
 import * as Y from 'yjs';
 
+const modes = {
+  EDIT: 'EDIT',
+  PLAY: 'PLAY',
+};
+
+let mode = modes.EDIT;
+
 const makeTreeComposite = tree => {
-  const options = {
-    collisionFilter: { group: -1 },
-    render: { fillStyle: '#010242' },
-  };
   const stiffness = 0.4;
   const walkTree = (node, bodies = [], constraints = []) => {
-    const shape = Bodies.circle(node.x, node.y, node.r, options);
+    const shape = Bodies.circle(node.x, node.y, node.r, {
+      collisionFilter: { group: -1 },
+      render: { sprite: { texture: node.texture } },
+    });
     bodies.push(shape);
-    constraints.push(
-      Constraint.create({
-        bodyB: shape,
-        pointA: { x: node.x, y: node.y },
-        pointB: { x: 0, y: 0 },
-        stiffness: stiffness,
-        render: {
-          visible: false,
-        },
-      })
-    );
+    if (mode === modes.EDIT) {
+      constraints.push(
+        Constraint.create({
+          bodyB: shape,
+          pointA: { x: node.x, y: node.y },
+          pointB: { x: 0, y: 0 },
+          stiffness: stiffness,
+          render: {
+            visible: false,
+          },
+        })
+      );
+    }
     const childShapes = [];
     for (let child of node.children) {
       const { shape: childShape } = walkTree(child, bodies, constraints);
@@ -70,10 +78,10 @@ const makeTreeComposite = tree => {
   return Composite.create({ bodies, constraints });
 };
 
-const createTheWorld = () => {
+const createTheWorld = element => {
   const engine = Engine.create({ gravity: { x: 0, y: 0.1 } });
   const render = Render.create({
-    element: document.getElementById('app'),
+    element,
     engine,
     options: {
       background: 'transparent',
@@ -123,18 +131,26 @@ const main = () => {
   const ydoc = new Y.Doc();
   new WebsocketProvider('wss://ywss.figureandsound.com', 'dev-data', ydoc);
   let life;
-  const world = createTheWorld();
-  const addLife = () => {
+  const app = document.getElementById('app');
+  const world = createTheWorld(app);
+  const addLife = (x, y, r, image) => {
+    console.log(x, y, r, image);
     const newChild = new Y.Map();
-    newChild.set('x', Math.random() * 600 + 50);
-    newChild.set('y', Math.random() * 400 + 50);
-    newChild.set('r', Math.random() * 50 + 10);
+    newChild.set('x', x);
+    newChild.set('y', y);
+    newChild.set('r', r);
+    newChild.set('texture', image);
     newChild.set('children', new Y.Array());
     ydoc.getMap('root').get('children').push([newChild]);
     showLife();
   };
   const removeLife = () => {
-    const children = ydoc.getMap('root').get('children');
+    const root = ydoc.getMap('root');
+    root.set('x', 400);
+    root.set('y', 300);
+    root.set('r', 50);
+    root.set('texture', 'body.png');
+    const children = root.get('children');
     children.delete(0, children.length);
     showLife();
   };
@@ -155,6 +171,35 @@ const main = () => {
     .addEventListener('click', () => {
       removeLife();
     });
+  document
+    .getElementById('button-for-toggling')
+    .addEventListener('click', () => {
+      mode = mode === modes.PLAY ? modes.EDIT : modes.PLAY;
+      showLife();
+    });
+  ['eyeball-for-dragging', 'body-for-dragging'].forEach(id => {
+    document.getElementById(id).addEventListener('dragstart', event => {
+      event.dataTransfer.setData(
+        'application/json',
+        JSON.stringify({ image: event.target.src, size: event.target.width / 2 })
+      );
+    });
+  });
+  const canvas = app.querySelector('canvas');
+  canvas.addEventListener('dragover', event => {
+    event.preventDefault();
+  });
+  canvas.addEventListener('drop', event => {
+    const raw = event.dataTransfer.getData('application/json');
+    let parsed;
+    try {
+      parsed = JSON.parse(raw);
+    } catch (e) {
+      console.error(e);
+      return;
+    }
+    addLife(event.offsetX, event.offsetY, parsed.size, parsed.image);
+  });
 };
 
 main();

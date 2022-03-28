@@ -9,6 +9,7 @@
     "start": "webpack-dev-server"
   },
   "dependencies": {
+    "copy-webpack-plugin": "^10.2.4",
     "html-webpack-plugin": "^5.5.0",
     "matter-js": "^0.18.0",
     "prettier": "^2.6.0",
