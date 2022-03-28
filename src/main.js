@@ -8,6 +8,8 @@ import {
   Render,
   Runner,
 } from 'matter-js';
+import { WebsocketProvider } from 'y-websocket';
+import * as Y from 'yjs';
 
 const makeTreeComposite = tree => {
   const options = {
@@ -68,8 +70,8 @@ const makeTreeComposite = tree => {
   return Composite.create({ bodies, constraints });
 };
 
-const main = () => {
-  const engine = Engine.create({ gravity: { x: 0, y: 0 } });
+const createTheWorld = () => {
+  const engine = Engine.create({ gravity: { x: 0, y: 0.1 } });
   const render = Render.create({
     element: document.getElementById('app'),
     engine,
@@ -105,45 +107,54 @@ const main = () => {
       render: { visible: false },
     }),
   ]);
-  Composite.add(
-    engine.world,
-    makeTreeComposite({
-      x: 400,
-      y: 300,
-      r: 50,
-      children: [
-        {
-          x: 400,
-          y: 100,
-          r: 50,
-          children: [
-            {
-              x: 400,
-              y: 200,
-              r: 75,
-              children: [],
-            },
-            {
-              x: 300,
-              y: 200,
-              r: 50,
-              children: [
-                { x: 300, y: 150, r: 25, children: [] },
-                { x: 250, y: 150, r: 25, children: [] },
-                { x: 250, y: 200, r: 25, children: [] },
-                { x: 250, y: 250, r: 25, children: [] },
-                { x: 300, y: 250, r: 25, children: [] },
-              ],
-            },
-            { x: 500, y: 200, r: 50, children: [] },
-          ],
-        },
-      ],
-    })
-  );
   Render.run(render);
   const runner = Runner.create();
   Runner.run(runner, engine);
+  return engine.world;
+};
+
+const animateLife = (data, world) => {
+  const life = makeTreeComposite(data);
+  Composite.add(world, life);
+  return life;
+};
+
+const main = () => {
+  const ydoc = new Y.Doc();
+  new WebsocketProvider('wss://ywss.figureandsound.com', 'dev-data', ydoc);
+  let life;
+  const world = createTheWorld();
+  const addLife = () => {
+    const newChild = new Y.Map();
+    newChild.set('x', Math.random() * 600 + 50);
+    newChild.set('y', Math.random() * 400 + 50);
+    newChild.set('r', Math.random() * 50 + 10);
+    newChild.set('children', new Y.Array());
+    ydoc.getMap('root').get('children').push([newChild]);
+    showLife();
+  };
+  const removeLife = () => {
+    const children = ydoc.getMap('root').get('children');
+    children.delete(0, children.length);
+    showLife();
+  };
+  const showLife = () => {
+    if (life) Composite.remove(world, life);
+    life = animateLife(ydoc.getMap('root').toJSON(), world);
+  };
+  ydoc.on('update', () => {
+    showLife();
+  });
+  document
+    .getElementById('button-for-clicking')
+    .addEventListener('click', () => {
+      addLife();
+    });
+  document
+    .getElementById('button-for-destroying')
+    .addEventListener('click', () => {
+      removeLife();
+    });
 };
 
 main();
