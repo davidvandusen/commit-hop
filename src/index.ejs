@@ -13,15 +13,27 @@
       display: flex;
       justify-content: center;
     }
+    #controls {
+      display: flex;
+      flex-direction: column;
+      font-family: sans-serif;
+      left: 0;
+      padding: 10px;
+      position: absolute;
+      top: 0;
+      width: 110px;
+    }
   </style>
 </head>
 <body>
 <noscript>This website is a JavaScript application, so JavaScript needs to be enabled in order to use it.</noscript>
 <div id="app"></div>
-<button id="button-for-clicking">Button for Clicking</button>
-<button id="button-for-destroying">Reset</button>
-<button id="button-for-toggling">Toggle Mode</button>
-<img src="eyeball.png" alt="eyeball" width="40" height="40" id="eyeball-for-dragging" draggable="true" />
-<img src="body.png" alt="furry blue body" width="100" height="100" id="body-for-dragging" draggable="true" />
+<div id="controls">
+  <button id="button-for-toggling">Toggle Edit/Play</button>
+  <p>Drag these thingies onto that thingy.</p>
+  <img src="eyeball.png" alt="eyeball" width="40" height="40" id="eyeball-for-dragging" draggable="true" />
+  <img src="body.png" alt="furry blue body" width="100" height="100" id="body-for-dragging" draggable="true" />
+  <button id="button-for-destroying">It Broke (Fit It)</button>
+</div>
 </body>
 </html>

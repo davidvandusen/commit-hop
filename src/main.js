@@ -129,12 +129,11 @@ const animateLife = (data, world) => {
 
 const main = () => {
   const ydoc = new Y.Doc();
-  new WebsocketProvider('wss://ywss.figureandsound.com', 'dev-data', ydoc);
+  new WebsocketProvider('wss://ywss.figureandsound.com', 'data', ydoc);
   let life;
   const app = document.getElementById('app');
   const world = createTheWorld(app);
   const addLife = (x, y, r, image) => {
-    console.log(x, y, r, image);
     const newChild = new Y.Map();
     newChild.set('x', x);
     newChild.set('y', y);
@@ -151,7 +150,11 @@ const main = () => {
     root.set('r', 50);
     root.set('texture', 'body.png');
     const children = root.get('children');
-    children.delete(0, children.length);
+    if (children) {
+      children.delete(0, children.length);
+    } else {
+      root.set('children', new Y.Array());
+    }
     showLife();
   };
   const showLife = () => {
@@ -159,13 +162,8 @@ const main = () => {
     life = animateLife(ydoc.getMap('root').toJSON(), world);
   };
   ydoc.on('update', () => {
-    showLife();
+    setTimeout(showLife, 0);
   });
-  document
-    .getElementById('button-for-clicking')
-    .addEventListener('click', () => {
-      addLife();
-    });
   document
     .getElementById('button-for-destroying')
     .addEventListener('click', () => {
@@ -181,7 +179,10 @@ const main = () => {
     document.getElementById(id).addEventListener('dragstart', event => {
       event.dataTransfer.setData(
         'application/json',
-        JSON.stringify({ image: event.target.src, size: event.target.width / 2 })
+        JSON.stringify({
+          image: event.target.src,
+          size: event.target.width / 2,
+        })
       );
     });
   });
