@@ -194,7 +194,13 @@ const main = () => {
       mode = mode === modes.PLAY ? modes.EDIT : modes.PLAY;
       showLife();
     });
-  ['eyeball-for-dragging', 'body-for-dragging'].forEach(id => {
+  [
+    'eyeball-for-dragging',
+    'body-for-dragging',
+    'mouth-for-dragging',
+    'left-leg-for-dragging',
+    'right-leg-for-dragging',
+  ].forEach(id => {
     document.getElementById(id).addEventListener('dragstart', event => {
       event.dataTransfer.setData(
         'application/json',
@@ -224,6 +230,7 @@ const main = () => {
   // Clicking on two objects will nest them. Trying to nest an object to the
   // trash can will delete it and its children.
   let nestBodyA;
+  let nestMarkerA;
   let nestBodyB;
   const destroyObject = yid => {
     const stack = [ydoc.getMap('root')];
@@ -252,7 +259,6 @@ const main = () => {
         objB = node;
       }
       if (objA && objB) {
-        // TODO if B is a descendant of A then cancel
         const cloneA = objA.clone();
         const parentA = objA.parent;
         if (parentA) {
@@ -267,7 +273,15 @@ const main = () => {
       stack.push(...node.get('children'));
     }
   };
-  Events.on(mouseConstraint, 'mousedown', event => {
+  let mouseHasMoved = false;
+  Events.on(mouseConstraint, 'mousemove', () => {
+    mouseHasMoved = true;
+  });
+  Events.on(mouseConstraint, 'mousedown', () => {
+    mouseHasMoved = false;
+  });
+  Events.on(mouseConstraint, 'mouseup', event => {
+    if (mouseHasMoved) return;
     if (mode !== modes.EDIT) return;
     const hoveredBodies = Query.point(
       [...Composite.allBodies(life), trash],
@@ -277,6 +291,17 @@ const main = () => {
       const hoveredBody = hoveredBodies[hoveredBodies.length - 1];
       if (!nestBodyA) {
         nestBodyA = hoveredBody;
+        nestMarkerA = Bodies.circle(
+          hoveredBody.position.x,
+          hoveredBody.position.y,
+          hoveredBody.circleRadius,
+          {
+            collisionFilter: { group: -1 },
+            isStatic: true,
+            render: { fillStyle: 'transparent', lineWidth: 1 },
+          }
+        );
+        Composite.add(world, nestMarkerA);
       } else if (hoveredBody !== nestBodyA) {
         nestBodyB = hoveredBody;
       }
@@ -300,6 +325,10 @@ const main = () => {
         } else if (nestBodyA.yid && nestBodyB.yid) {
           nestObjects(nestBodyA.yid, nestBodyB.yid);
         }
+        if (nestMarkerA) {
+          Composite.remove(world, nestMarkerA);
+        }
+        nestMarkerA = null;
         nestBodyA = null;
         nestBodyB = null;
       }
