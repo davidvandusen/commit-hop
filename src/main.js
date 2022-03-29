@@ -179,7 +179,9 @@ const main = () => {
     life = animateLife(ydoc.getMap('root').toJSON(), world);
   };
   ydoc.on('update', () => {
-    setTimeout(showLife, 0);
+    if (mode === modes.EDIT) {
+      setTimeout(showLife, 0);
+    }
   });
   document
     .getElementById('button-for-destroying')
