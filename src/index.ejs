@@ -25,6 +25,49 @@
       top: 0;
       width: 110px;
     }
+    #button-for-go-crazy {
+      background: transparent;
+      border: 0 none;
+      color: rgba(0,0,0,0.2);
+    }
+    @keyframes gocrazy {
+      0% {
+        transform: translate(5px, -3px);
+      }
+      10% {
+        transform: translate(3px, 4px);
+      }
+      20% {
+        transform: translate(-1px, -2px);
+      }
+      30% {
+        transform: translate(1px, 2px);
+      }
+      40% {
+        transform: translate(-3px, -2px);
+      }
+      50% {
+        transform: translate(2px, 0px);
+      }
+      60% {
+        transform: translate(4px, -5px);
+      }
+      70% {
+        transform: translate(-1px, -3px);
+      }
+      80% {
+        transform: translate(1px, 2px);
+      }
+      90% {
+        transform: translate(-2px, -1px);
+      }
+    }
+    #button-for-go-crazy:hover {
+      animation: gocrazy;
+      animation-iteration-count: infinite;
+      animation-duration: 100ms;
+      color: black;
+    }
   </style>
 </head>
 <body>
@@ -38,7 +81,10 @@
   <img src="mouth.png" alt="fangy mouth" width="75" height="75" id="mouth-for-dragging" draggable="true" />
   <img src="left-leg.png" alt="furry left leg" width="75" height="75" id="left-leg-for-dragging" draggable="true" />
   <img src="right-leg.png" alt="furry right leg" width="75" height="75" id="right-leg-for-dragging" draggable="true" />
+  <br />
   <button id="button-for-destroying">It Broke (Fit It)</button>
+  <br />
+  <button id="button-for-go-crazy">GO CRAZY!</button>
 </div>
 </body>
 </html>

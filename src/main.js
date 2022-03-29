@@ -334,6 +334,56 @@ const main = () => {
       }
     }
   });
+  let crazy = 0;
+  const parts = [
+    { r: 25, src: '/eyeball.png' },
+    { r: 50, src: '/body.png' },
+    { r: 37.5, src: '/mouth.png' },
+    { r: 37.5, src: '/left-leg.png' },
+    { r: 37.5, src: '/right-leg.png' },
+  ];
+  document
+    .getElementById('button-for-go-crazy')
+    .addEventListener('click', () => {
+      if (crazy) {
+        clearInterval(crazy);
+        crazy = 0;
+        return;
+      }
+      crazy = setInterval(() => {
+        const roll = Math.random();
+        if (roll >= 0.5) {
+          const part = parts[Math.floor(Math.random() * parts.length)];
+          addLife(
+            Math.random() * 600 + 100,
+            Math.random() * 400 + 100,
+            part.r,
+            part.src
+          );
+        } else {
+          const yids = [];
+          const root = ydoc.getMap('root');
+          const stack = [root];
+          while (stack.length) {
+            const node = stack.pop();
+            const yid = node.get('id');
+            if (yid !== 'root') {
+              yids.push(yid);
+            }
+            stack.push(...node.get('children'));
+          }
+          const yidA = yids.splice(
+            Math.floor(Math.random() * yids.length),
+            1
+          );
+          const yidB = yids.splice(
+            Math.floor(Math.random() * yids.length),
+            1
+          );
+          nestObjects(yidA[0], yidB[0]);
+        }
+      }, 100);
+    });
 };
 
 main();
