@@ -148,7 +148,7 @@ const main = () => {
     root.set('x', 400);
     root.set('y', 300);
     root.set('r', 50);
-    root.set('texture', 'body.png');
+    root.set('texture', '/body.png');
     const children = root.get('children');
     if (children) {
       children.delete(0, children.length);
@@ -180,7 +180,7 @@ const main = () => {
       event.dataTransfer.setData(
         'application/json',
         JSON.stringify({
-          image: event.target.src,
+          image: (new URL(event.target.src)).pathname,
           size: event.target.width / 2,
         })
       );
