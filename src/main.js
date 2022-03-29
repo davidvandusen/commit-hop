@@ -55,9 +55,7 @@ const makeTreeComposite = tree => {
           render:
             mode === modes.PLAY
               ? { visible: false }
-              : {
-                  strokeStyle: 'rgba(255,255,255,0.25)',
-                },
+              : { strokeStyle: 'rgba(255,255,255,0.25)' },
         })
       );
       childShapes.push(childShape);
@@ -258,7 +256,10 @@ const main = () => {
         if (parentA) {
           parentA.delete(parentA.toArray().indexOf(objA), 1);
         }
-        objB.get('children').insert(0, [cloneA]);
+        const childrenB = objB.get('children');
+        if (childrenB) {
+          childrenB.insert(0, [cloneA]);
+        }
         return;
       }
       stack.push(...node.get('children'));
@@ -266,11 +267,12 @@ const main = () => {
   };
   Events.on(mouseConstraint, 'mousedown', event => {
     if (mode !== modes.EDIT) return;
-    const [hoveredBody] = Query.point(
+    const hoveredBodies = Query.point(
       [...Composite.allBodies(life), trash],
       event.mouse.position
     );
-    if (hoveredBody) {
+    if (hoveredBodies.length) {
+      const hoveredBody = hoveredBodies[hoveredBodies.length - 1];
       if (!nestBodyA) {
         nestBodyA = hoveredBody;
       } else if (hoveredBody !== nestBodyA) {
