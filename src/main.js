@@ -144,7 +144,7 @@ const animateLife = (data, world) => {
 
 const main = () => {
   const ydoc = new Y.Doc();
-  new WebsocketProvider('wss://ywss.figureandsound.com', 'data', ydoc);
+  new WebsocketProvider('wss://ywss.figureandsound.com', 'demo', ydoc);
   let life;
   const app = document.getElementById('app');
   const { mouseConstraint, trash, world } = createTheWorld(app);
@@ -382,7 +382,7 @@ const main = () => {
           );
           nestObjects(yidA[0], yidB[0]);
         }
-      }, 100);
+      }, 1000);
     });
 };
 
