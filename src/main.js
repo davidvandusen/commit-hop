@@ -21,7 +21,6 @@ const modes = {
 let mode = modes.EDIT;
 
 const makeTreeComposite = tree => {
-  const stiffness = 0.4;
   const walkTree = (node, bodies = [], constraints = []) => {
     const shape = Bodies.circle(node.x, node.y, node.r, {
       collisionFilter: { group: -1 },
@@ -35,7 +34,28 @@ const makeTreeComposite = tree => {
           bodyB: shape,
           pointA: { x: node.x, y: node.y },
           pointB: { x: 0, y: 0 },
-          stiffness: stiffness,
+          stiffness: 0.4,
+          render: {
+            visible: false,
+          },
+        })
+      );
+    } else {
+      constraints.push(
+        Constraint.create({
+          bodyB: shape,
+          pointA: { x: 400, y: 600 },
+          pointB: { x: 0 - node.r, y: 0 },
+          stiffness: 1,
+          render: {
+            visible: false,
+          },
+        }),
+        Constraint.create({
+          bodyB: shape,
+          pointA: { x: 400, y: 600 },
+          pointB: { x: 0 + node.r, y: 0 },
+          stiffness: 1,
           render: {
             visible: false,
           },
@@ -68,7 +88,7 @@ const makeTreeComposite = tree => {
             bodyB: childShapeB,
             pointA: { x: 0, y: 0 },
             pointB: { x: 0, y: 0 },
-            stiffness: stiffness,
+            stiffness: 0.4,
             render: {
               visible: false,
             },
@@ -83,7 +103,7 @@ const makeTreeComposite = tree => {
 };
 
 const createTheWorld = element => {
-  const engine = Engine.create({ gravity: { x: 0, y: 0.1 } });
+  const engine = Engine.create({ gravity: { x: 0, y: 0 } });
   const render = Render.create({
     element,
     engine,
