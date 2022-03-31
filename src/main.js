@@ -202,17 +202,23 @@ const main = () => {
     'right-leg-for-dragging',
   ].forEach(id => {
     document.getElementById(id).addEventListener('dragstart', event => {
+      if (mode !== modes.EDIT) return;
+      const { offsetX, offsetY } = event;
+      const radius = event.target.width / 2;
       event.dataTransfer.setData(
         'application/json',
         JSON.stringify({
           image: new URL(event.target.src).pathname,
-          size: event.target.width / 2,
+          radius,
+          offsetX: offsetX - radius,
+          offsetY: offsetY - radius,
         })
       );
     });
   });
   const canvas = app.querySelector('canvas');
   canvas.addEventListener('dragover', event => {
+    if (mode !== modes.EDIT) return;
     event.preventDefault();
   });
   canvas.addEventListener('drop', event => {
@@ -225,7 +231,12 @@ const main = () => {
       console.error(e);
       return;
     }
-    addLife(event.offsetX, event.offsetY, parsed.size, parsed.image);
+    addLife(
+      event.offsetX - parsed.offsetX,
+      event.offsetY - parsed.offsetY,
+      parsed.radius,
+      parsed.image
+    );
   });
   // Clicking on two objects will nest them. Trying to nest an object to the
   // trash can will delete it and its children.
@@ -372,14 +383,8 @@ const main = () => {
             }
             stack.push(...node.get('children'));
           }
-          const yidA = yids.splice(
-            Math.floor(Math.random() * yids.length),
-            1
-          );
-          const yidB = yids.splice(
-            Math.floor(Math.random() * yids.length),
-            1
-          );
+          const yidA = yids.splice(Math.floor(Math.random() * yids.length), 1);
+          const yidB = yids.splice(Math.floor(Math.random() * yids.length), 1);
           nestObjects(yidA[0], yidB[0]);
         }
       }, 1000);
