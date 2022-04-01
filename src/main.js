@@ -164,39 +164,51 @@ const animateLife = (data, world) => {
 
 const main = () => {
   const ydoc = new Y.Doc();
-  new WebsocketProvider('wss://ywss.figureandsound.com', 'demo', ydoc);
+  new WebsocketProvider(
+    'wss://ywss.figureandsound.com',
+    `hop-${encodeURIComponent(location.href)}`,
+    ydoc
+  );
   let life;
   const app = document.getElementById('app');
   const { mouseConstraint, trash, world } = createTheWorld(app);
   const addLife = (x, y, r, image) => {
-    const newChild = new Y.Map();
-    newChild.set('id', `${ydoc.clientID}-${Date.now()}`);
-    newChild.set('x', x);
-    newChild.set('y', y);
-    newChild.set('r', r);
-    newChild.set('texture', image);
-    newChild.set('children', new Y.Array());
-    ydoc.getMap('root').get('children').push([newChild]);
+    const root = ydoc.getMap('root');
+    const rootExists = root.get('id') === 'root';
+    const newLife = rootExists ? new Y.Map() : root;
+    newLife.set('x', x);
+    newLife.set('y', y);
+    newLife.set('r', r);
+    newLife.set('texture', image);
+    newLife.set('children', new Y.Array());
+    if (rootExists) {
+      newLife.set('id', `${ydoc.clientID}-${Date.now()}`);
+      root.get('children').push([newLife]);
+    } else {
+      newLife.set('id', 'root');
+    }
     showLife();
   };
   const removeLife = () => {
     const root = ydoc.getMap('root');
-    root.set('id', 'root');
-    root.set('x', 400);
-    root.set('y', 300);
-    root.set('r', 50);
-    root.set('texture', '/body.png');
-    const children = root.get('children');
-    if (children) {
-      children.delete(0, children.length);
-    } else {
-      root.set('children', new Y.Array());
-    }
+    root.delete('id');
+    root.delete('x');
+    root.delete('y');
+    root.delete('r');
+    root.delete('texture');
+    root.delete('children');
     showLife();
   };
   const showLife = () => {
-    if (life) Composite.remove(world, life);
-    life = animateLife(ydoc.getMap('root').toJSON(), world);
+    if (life) {
+      Composite.remove(world, life);
+    }
+    const root = ydoc.getMap('root');
+    if (root.get('id') === 'root') {
+      life = animateLife(root.toJSON(), world);
+    } else {
+      life = null;
+    }
   };
   ydoc.on('update', () => {
     if (mode === modes.EDIT) {
